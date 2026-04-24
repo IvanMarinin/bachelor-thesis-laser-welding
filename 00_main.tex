@@ -1,0 +1,53 @@
+\documentclass[times,specification,annotation]{99_itmo-student-thesis}
+
+%% Опции пакета:
+%% - specification - если есть, генерируется задание, иначе не генерируется
+%% - annotation - если есть, генерируется аннотация, иначе не генерируется
+%% - times - делает все шрифтом Times New Roman, собирается с помощью xelatex
+%% - languages={...} - устанавливает перечень используемых языков. По умолчанию это {english,russian}.
+%%                     Последний из языков определяет текст основного документа.
+
+%% Делает запятую в формулах более интеллектуальной, например:
+%% $1,5x$ будет читаться как полтора икса, а не один запятая пять иксов.
+%% Однако если написать $1, 5x$, то все будет как прежде.
+\usepackage{icomma}
+
+%% Один из пакетов, позволяющий делать таблицы на всю ширину текста.
+\usepackage{tabularx}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+
+%% Цветные заметки
+\usepackage{xcolor}
+\newcommand{\rednote}[1]{\textcolor{red}{#1}}
+\newcommand{\bluenote}[1]{\textcolor{blue}{#1}}
+\newcommand{\greennote}[1]{\textcolor{green!50!black}{#1}}
+
+%% Указываем файл с библиографией.
+\addbibresource{98_biba.bib}
+
+\begin{document}
+
+\input{01_title.tex}
+
+%% Оглавление
+\tableofcontents
+
+\input{02_introduction.tex}
+\input{03_literature_review.tex}
+
+\input{04_chapter1.tex}
+
+\input{90_conclusion.tex}
+
+
+
+\printmainbibliography
+\appendix
+%% После этой команды chapter будет генерировать приложения, нумерованные русскими буквами.
+%% \startappendices из старого стилевика будет делать то же самое
+
+
+
+
+\end{document}
