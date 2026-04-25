@@ -53,12 +53,26 @@
 \RequirePackage{amsthm}
 \RequirePackage{amsfonts}
 \RequirePackage{amsxtra}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows}
+
+%% Делает запятую в формулах более интеллектуальной, например:
+%% $1,5x$ будет читаться как полтора икса, а не один запятая пять иксов.
+%% Однако если написать $1, 5x$, то все будет как прежде.
+\RequirePackage{icomma}
 
 %% Поддержка цветов и чего-то еще графического, в том числе в таблицах.
 
 \RequirePackage{graphicx}
-\RequirePackage{xcolor}
+\RequirePackage{subcaption}
 \RequirePackage{colortbl}
+
+%% Цветные заметки
+
+\RequirePackage{xcolor}
+\newcommand{\rednote}[1]{\textcolor{red}{#1}}
+\newcommand{\bluenote}[1]{\textcolor{blue}{#1}}
+\newcommand{\greennote}[1]{\textcolor{green!50!black}{#1}}
 
 %% Этот пакет используется для некоторых таблиц и других визуальных элементов.
 
@@ -218,7 +232,7 @@
 \RequirePackage[
     backend=biber,
     bibencoding=utf8,
-    sorting=nyt,
+    sorting=none,
     sortcites=true,
     bibstyle=gost-numeric,
     citestyle=numeric-comp,
