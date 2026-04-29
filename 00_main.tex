@@ -1,8 +1,6 @@
-\documentclass[times,specification,annotation]{99_itmo-student-thesis}
+\documentclass[times]{99_itmo-student-thesis}
  
 %% Опции класса
-%% specification  — генерировать задание
-%% annotation     — генерировать аннотацию
 %% times          — использовать Times New Roman (сборка через XeLaTeX)
 %% languages      — список используемых языков; по умолчанию {english,russian} последний язык в списке считается основным языком документа
  
@@ -13,12 +11,17 @@
 \begin{document}
 
  
-%% Титульный лист
-\input{01_title.tex}
+%% Титульный лист не требуется так как генерируется ису
+\publishyear{2026}
+\maketitle{}
 
  
 %% Оглавление
 \tableofcontents
+
+
+%% Список обозначений и сокращений
+\input{01_abbreviations.tex}
 
  
 %% Основной текст
@@ -27,7 +30,6 @@
 \input{04_chapter1.tex}
 \input{90_conclusion.tex}
 
- 
 %% Список литературы
 \printmainbibliography
 
