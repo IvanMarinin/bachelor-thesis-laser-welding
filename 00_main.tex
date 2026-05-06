@@ -1,21 +1,12 @@
 \documentclass[times]{99_itmo-student-thesis}
  
-%% Опции класса
-%% times          — использовать Times New Roman (сборка через XeLaTeX)
-%% languages      — список используемых языков; по умолчанию {english,russian} последний язык в списке считается основным языком документа
- 
 
 %% Библиография
 \addbibresource{98_biba.bib}
 
 \begin{document}
 
- 
-%% Титульный лист не требуется так как генерируется ису
-\publishyear{2026}
-\maketitle{}
-
- 
+  
 %% Оглавление
 \tableofcontents
 
@@ -31,6 +22,7 @@
 \input{90_conclusion.tex}
 
 %% Список литературы
+\nocite{*}
 \printmainbibliography
 
  

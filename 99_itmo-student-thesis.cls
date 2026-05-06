@@ -1,31 +1,45 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{itmo-student-thesis}[2023/04/16 v1.4.5]
+
+% ================================================================
+% БАЗОВЫЙ КЛАСС И ОБРАБОТКА ОПЦИЙ
+% ================================================================
+%
+% Класс построен поверх extreport:
+% - формат A4;
+% - базовый размер шрифта 14 pt.
+%
+% Для обработки опций используется xkeyval/xkvltxp.
+% ================================================================
+
 \RequirePackage{xkvltxp}
 \LoadClass[14pt,a4paper]{extreport}
 
-%% Обработка опций пакета
-
-\newif\if@shouldusexelatex
-\newif\if@shouldmakespecification
-\newif\if@shouldmakeannotation
-\newif\if@shouldmaketitlepage@ru
-\newif\if@shouldmakespecification@ru
-\newif\if@shouldmakeannotation@ru
-
-\newcommand{\@babeloptions}{english,russian}
-
 \RequirePackage{xkeyval}
 
+\newif\if@shouldusexelatex
+
+% По умолчанию документ поддерживает английский и русский языки.
+% Последний язык в списке считается основным языком документа.
+\newcommand{\@babeloptions}{english,russian}
+
+% Опция times:
+%   включает загрузку fontspec и переключает документ на системные
+%   шрифты Times New Roman / Arial / Courier New.
 \DeclareOptionX{times}{\@shouldusexelatextrue}
-\DeclareOptionX{specification}{\@shouldmakespecificationtrue}
-\DeclareOptionX{annotation}{\@shouldmakeannotationtrue}
-\DeclareOptionX{specification-extra-ru}{\@shouldmakespecification@rutrue}
-\DeclareOptionX{annotation-extra-ru}{\@shouldmakeannotation@rutrue}
-\DeclareOptionX{titlepage-extra-ru}{\@shouldmaketitlepage@rutrue}
+
+
+% Пользовательский список языков.
 \DeclareOptionX{languages}{\renewcommand{\@babeloptions}{#1}}
 
 \ProcessOptionsX\relax
 
+% ================================================================
+% ШРИФТЫ И ЛОКАЛИЗАЦИЯ
+% ================================================================
+
+% Если включена опция times, ожидается сборка XeLaTeX/LuaLaTeX.
+% Иначе подключается paratype как более лёгкий вариант.
 \if@shouldusexelatex
     \RequirePackage{fontspec}
     \defaultfontfeatures{Ligatures={TeX},Renderer=Basic}
@@ -36,103 +50,142 @@
     \RequirePackage{paratype}
 \fi
 
-%% Конфигурируем babel
-
+% Babel отвечает за языки документа, csquotes — за корректные кавычки,
+% iflang — за удобное переключение локализованных строк.
 \RequirePackage[\@babeloptions]{babel}
 \RequirePackage{csquotes}
 \RequirePackage{iflang}
 
-%% Формируем отступы
+% etoolbox нужен для \pretocmd / \apptocmd,
+% ifthen используется в ряде старых логических конструкций.
+\RequirePackage{etoolbox}
+\RequirePackage{ifthen}
 
+% ================================================================
+% ГЕОМЕТРИЯ СТРАНИЦЫ И БАЗОВАЯ ТИПОГРАФИКА
+% ================================================================
+
+% Поля страницы:
+% - верхнее:   2 см
+% - нижнее:    2 см
+% - левое:     3 см
+% - правое:    1.5 см
 \RequirePackage[top=2cm, bottom=2cm, left=3cm, right=1.5cm]{geometry}
 
-%% Эти пакеты слишком часто используются, чтобы их не включать
+% Полуторный межстрочный интервал.
+\RequirePackage{setspace}
+\onehalfspacing
 
+% Абзацный отступ.
+\setlength{\parindent}{1.25cm}
+
+% Более «плотные» списки по умолчанию.
+\RequirePackage{enumitem}
+\setlist{nosep}
+
+% В маркированных списках вместо стандартного bullet используется тире.
+\renewcommand\labelitemi{---}
+
+% ================================================================
+% ОСНОВНЫЕ ПАКЕТЫ ДЛЯ МАТЕМАТИКИ, ГРАФИКИ И ТАБЛИЦ
+% ================================================================
+
+% Математические пакеты.
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
 \RequirePackage{amsthm}
 \RequirePackage{amsfonts}
 \RequirePackage{amsxtra}
+
+% TikZ для схем и векторных рисунков.
 \RequirePackage{tikz}
 \usetikzlibrary{arrows}
 
-%% Делает запятую в формулах более интеллектуальной, например:
-%% $1,5x$ будет читаться как полтора икса, а не один запятая пять иксов.
-%% Однако если написать $1, 5x$, то все будет как прежде.
+% Корректная работа десятичной запятой в формулах.
 \RequirePackage{icomma}
 
-%% Поддержка цветов и чего-то еще графического, в том числе в таблицах.
-
+% Поддержка графики и связанных элементов.
 \RequirePackage{graphicx}
 \RequirePackage{subcaption}
 \RequirePackage{colortbl}
 
-%% Цветные заметки
+% Пакет для таблиц с автоматически растягиваемыми столбцами.
+\RequirePackage{tabularx}
+
+% Пакет для многостраничных таблиц.
+\RequirePackage{longtable}
+
+% ================================================================
+% ЦВЕТА И РЕДАКТОРСКИЕ ПОМЕТКИ
+% ================================================================
 
 \RequirePackage{xcolor}
+
+% Базовые цвета для листингов и внутренних пометок.
+\definecolor{darkblue}{rgb}{0,0,0.5}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+
+% Простые цветные заметки внутри текста.
 \newcommand{\rednote}[1]{\textcolor{red}{#1}}
 \newcommand{\bluenote}[1]{\textcolor{blue}{#1}}
 \newcommand{\greennote}[1]{\textcolor{green!50!black}{#1}}
 
-%% Этот пакет используется для некоторых таблиц и других визуальных элементов.
+% ================================================================
+% ФЛОАТЫ, ПОДПИСИ И КОЛОНТИТУЛЫ
+% ================================================================
 
-\RequirePackage{tabularx}
-
-%% Расположение номеров страниц - как и в диссертации.
-
+% fancyhdr нужен для управления номером страницы и колонтитулами.
 \RequirePackage{fancyhdr}
 
-%% Делаем правильные подписи в правильных местах.
-
+% Настройка подписей к рисункам, таблицам и листингам.
 \RequirePackage{caption}
 \RequirePackage{floatrow}
 
-%% Тем, кому нужны листинги, должны использовать \begin{algorithm}\end{algorithm}
-%% в качестве флоатов.
-
+% Алгоритмы используются как общий float-контейнер для листингов,
+% если это нужно в документе.
 \RequirePackage{algorithm}
-\floatname{algorithm}{\@listingname}
-
-%% Не знаю, надо оно здесь или нет, но пусть будет.
-
 \RequirePackage{algorithmicx}
 \RequirePackage{algpseudocode}
 
-%% Перечисления по умолчанию слишком разрежены.
+% Название float'а algorithm будет переопределено ниже, после
+% инициализации локализованных строк.
+% Команда \TheOnlyTruePageStyle объявляется заранее, чтобы ей можно
+% было пользоваться и в заголовках, и в \maketitle.
+\newcommand{\TheOnlyTruePageStyle}{fancy}
 
-\RequirePackage{enumitem}
-\setlist{nosep}
+% ================================================================
+% НУМЕРАЦИЯ СПИСКОВ И ВСПОМОГАТЕЛЬНЫЕ ЛОКАЛИЗОВАННЫЕ СТРОКИ
+% ================================================================
 
-%% Полуторный межстрочный интервал
-\RequirePackage{setspace}
-\onehalfspacing
-
-%% Абзацный отступ по ГОСТу - пять букв. Это примерно столько.
-
-\setlength{\parindent}{1.25cm}
-
-%% Не используем буллеты.
-
-\renewcommand\labelitemi{---}
-
-%% На первом уровне нумерованных списков ставим русские буквы, на втором - цифры.
-
-%%% asbuk работал бы неплохо, но он включает в нумерацию букву "з", которую ГОСТ не разрешает. И, может быть, что-то еще.
-
+% На первом уровне нумерованных списков в русском языке используются
+% русские буквы, но без запрещённых ГОСТом букв.
 \def\asbukx#1{\expandafter\@asbukx\csname c@#1\endcsname}
-\def\@asbukx#1{\ifcase#1\or a\or б\or в\or г\or д\or е\or ж\or и\or к\or л\or м\or н\or п\or р\or с\or т\or у\or ф\or х\or ц\or ш\or щ\or э\or ю\or я\fi}
+\def\@asbukx#1{%
+    \ifcase#1\or
+    а\or б\or в\or г\or д\or е\or ж\or и\or к\or л\or м\or н\or п\or р\or с\or т\or у\or ф\or х\or ц\or ш\or щ\or э\or ю\or я%
+    \fi
+}
 
 \def\Asbukx#1{\expandafter\@Asbukx\csname c@#1\endcsname}
-\def\@Asbukx#1{\ifcase#1\or А\or Б\or В\or Г\or Д\or Е\or Ж\or И\or К\or Л\or М\or Н\or П\or Р\or С\or Т\or У\or Ф\or Х\or Ц\or Ш\or Щ\or Э\or Ю\or Я\fi}
+\def\@Asbukx#1{%
+    \ifcase#1\or
+    А\or Б\or В\or Г\or Д\or Е\or Ж\or И\or К\or Л\or М\or Н\or П\or Р\or С\or Т\or У\or Ф\or Х\or Ц\or Ш\or Щ\or Э\or Ю\or Я%
+    \fi
+}
 
 \AddEnumerateCounter{\Asbukx}{\@Asbukx}{М}
 \AddEnumerateCounter{\asbukx}{\@asbukx}{м}
 
+% На втором уровне — арабские цифры с закрывающей скобкой.
 \renewcommand\labelenumii{\arabic{enumii})}
 \renewcommand\theenumii{\arabic{enumii}}
 
+% Универсальная команда выбора строки по текущему основному языку:
+% - первый аргумент: английская версия;
+% - второй аргумент: русская версия.
 \newcommand{\@iflfe}[2]{#1}
 
+% Локализованные названия структурных элементов документа.
 \newcommand*{\@tablecontinuation}[1]{Table~#1, continued}
 \newcommand*{\@chaptername}{CHAPTER}
 \newcommand*{\@introductionname}{INTRODUCTION}
@@ -144,6 +197,7 @@
 \newcommand*{\@chapterconclusion}{Conclusions on Chapter}
 \newcommand*{\@listingname}{Listing}
 
+% Локализованные названия теоремоподобных окружений.
 \newcommand*{\@theorem@theorem}{Theorem}
 \newcommand*{\@theorem@proposition}{Proposition}
 \newcommand*{\@theorem@corollary}{Corollary}
@@ -156,79 +210,96 @@
 \newcommand*{\@theorem@condition}{Condition}
 \newcommand*{\@theorem@example}{Example}
 
+% Английские подписи.
 \addto{\captionsenglish}{%
-\renewcommand{\@iflfe}[2]{#1}%
-\renewcommand*{\figurename}{Figure}%
-\renewcommand*{\contentsname}{Contents}%
-\renewcommand*{\labelenumi}{\alph{enumi})}%
-\renewcommand*{\theenumi}{\alph{enumi}}%
-\renewcommand*{\@tablecontinuation}[1]{Table~#1, continued}%
-\renewcommand*{\@chaptername}{CHAPTER}%
-\renewcommand*{\@introductionname}{INTRODUCTION}%
-\renewcommand*{\@conclusionname}{CONCLUSION}%
-\renewcommand*{\@appendixname}{APPENDIX}%
-\renewcommand*{\@appendixcounter}{\Alph{chapter}}%
-\renewcommand*{\@proofname}{Proof}%
-\renewcommand*{\@referencesname}{REFERENCES}%
-\renewcommand*{\@chapterconclusion}{Conclusions on Chapter}%
-\renewcommand*{\@listingname}{Listing}%
-\renewcommand*{\@theorem@theorem}{Theorem}%
-\renewcommand*{\@theorem@proposition}{Proposition}%
-\renewcommand*{\@theorem@corollary}{Corollary}%
-\renewcommand*{\@theorem@lemma}{Lemma}%
-\renewcommand*{\@theorem@question}{Question}%
-\renewcommand*{\@theorem@conjecture}{Conjecture}%
-\renewcommand*{\@theorem@assumption}{Assumption}%
-\renewcommand*{\@theorem@definition}{Definition}%
-\renewcommand*{\@theorem@notation}{Notation}%
-\renewcommand*{\@theorem@condition}{Condition}%
-\renewcommand*{\@theorem@example}{Example}%
+    \renewcommand{\@iflfe}[2]{#1}%
+    \renewcommand*{\figurename}{Figure}%
+    \renewcommand*{\contentsname}{Contents}%
+    \renewcommand*{\labelenumi}{\alph{enumi})}%
+    \renewcommand*{\theenumi}{\alph{enumi}}%
+    \renewcommand*{\@tablecontinuation}[1]{Table~##1, continued}%
+    \renewcommand*{\@chaptername}{CHAPTER}%
+    \renewcommand*{\@introductionname}{INTRODUCTION}%
+    \renewcommand*{\@conclusionname}{CONCLUSION}%
+    \renewcommand*{\@appendixname}{APPENDIX}%
+    \renewcommand*{\@appendixcounter}{\Alph{chapter}}%
+    \renewcommand*{\@proofname}{Proof}%
+    \renewcommand*{\@referencesname}{REFERENCES}%
+    \renewcommand*{\@chapterconclusion}{Conclusions on Chapter}%
+    \renewcommand*{\@listingname}{Listing}%
+    \renewcommand*{\@theorem@theorem}{Theorem}%
+    \renewcommand*{\@theorem@proposition}{Proposition}%
+    \renewcommand*{\@theorem@corollary}{Corollary}%
+    \renewcommand*{\@theorem@lemma}{Lemma}%
+    \renewcommand*{\@theorem@question}{Question}%
+    \renewcommand*{\@theorem@conjecture}{Conjecture}%
+    \renewcommand*{\@theorem@assumption}{Assumption}%
+    \renewcommand*{\@theorem@definition}{Definition}%
+    \renewcommand*{\@theorem@notation}{Notation}%
+    \renewcommand*{\@theorem@condition}{Condition}%
+    \renewcommand*{\@theorem@example}{Example}%
 }
 
+% Русские подписи.
 \addto{\captionsrussian}{%
-\renewcommand{\@iflfe}[2]{#2}%
-\renewcommand*{\figurename}{Рисунок}%
-\renewcommand*{\contentsname}{Содержание}%
-\renewcommand*{\labelenumi}{\asbukx{enumi})}%
-\renewcommand*{\theenumi}{\asbukx{enumi}}%
-\renewcommand*{\@tablecontinuation}[1]{Продолжение таблицы~#1}%
-\renewcommand*{\@chaptername}{ГЛАВА}%
-\renewcommand*{\@introductionname}{ВВЕДЕНИЕ}%
-\renewcommand*{\@conclusionname}{ЗАКЛЮЧЕНИЕ}%
-\renewcommand*{\@appendixname}{ПРИЛОЖЕНИЕ}%
-\renewcommand*{\@appendixcounter}{\Asbukx{chapter}}%
-\renewcommand*{\@proofname}{Доказательство}%
-\renewcommand*{\@referencesname}{СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ}%
-\renewcommand*{\@chapterconclusion}{Выводы по главе}%
-\renewcommand*{\@listingname}{Листинг}%
-\renewcommand*{\@theorem@theorem}{Теорема}%
-\renewcommand*{\@theorem@proposition}{Утверждение}%
-\renewcommand*{\@theorem@corollary}{Следствие}%
-\renewcommand*{\@theorem@lemma}{Лемма}%
-\renewcommand*{\@theorem@question}{Вопрос}%
-\renewcommand*{\@theorem@conjecture}{Гипотеза}%
-\renewcommand*{\@theorem@assumption}{Предположение}%
-\renewcommand*{\@theorem@definition}{Определение}%
-\renewcommand*{\@theorem@notation}{Обозначение}%
-\renewcommand*{\@theorem@condition}{Условие}%
-\renewcommand*{\@theorem@example}{Пример}%
+    \renewcommand{\@iflfe}[2]{#2}%
+    \renewcommand*{\figurename}{Рисунок}%
+    \renewcommand*{\contentsname}{Содержание}%
+    \renewcommand*{\labelenumi}{\asbukx{enumi})}%
+    \renewcommand*{\theenumi}{\asbukx{enumi}}%
+    \renewcommand*{\@tablecontinuation}[1]{Продолжение таблицы~##1}%
+    \renewcommand*{\@chaptername}{ГЛАВА}%
+    \renewcommand*{\@introductionname}{ВВЕДЕНИЕ}%
+    \renewcommand*{\@conclusionname}{ЗАКЛЮЧЕНИЕ}%
+    \renewcommand*{\@appendixname}{ПРИЛОЖЕНИЕ}%
+    \renewcommand*{\@appendixcounter}{\Asbukx{chapter}}%
+    \renewcommand*{\@proofname}{Доказательство}%
+    \renewcommand*{\@referencesname}{СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ}%
+    \renewcommand*{\@chapterconclusion}{Выводы по главе}%
+    \renewcommand*{\@listingname}{Листинг}%
+    \renewcommand*{\@theorem@theorem}{Теорема}%
+    \renewcommand*{\@theorem@proposition}{Утверждение}%
+    \renewcommand*{\@theorem@corollary}{Следствие}%
+    \renewcommand*{\@theorem@lemma}{Лемма}%
+    \renewcommand*{\@theorem@question}{Вопрос}%
+    \renewcommand*{\@theorem@conjecture}{Гипотеза}%
+    \renewcommand*{\@theorem@assumption}{Предположение}%
+    \renewcommand*{\@theorem@definition}{Определение}%
+    \renewcommand*{\@theorem@notation}{Обозначение}%
+    \renewcommand*{\@theorem@condition}{Условие}%
+    \renewcommand*{\@theorem@example}{Пример}%
 }
 
-%% Многостраничные таблицы в гостовском формате. Аргументы:
-%% 1 - имя, по которому ссылаемся
-%% 2 - подпись
-%% 3 - строка форматирования столбцов (как в tabular)
-%% 4 - заголовки столбцов (первая строчка, которая будет везде повторяться)
-%% 5 - число столбцов (не осилил вычислить его из значения 3)
+% После объявления локализованной строки можно безопасно задать
+% название algorithm-флоата.
+\floatname{algorithm}{\@listingname}
 
-\newenvironment{nirtable}[5]{
-\begin{longtable}{#3}\caption{#2}\label{#1}
-\\\hline #4 \\\hline \endfirsthead
-\multicolumn{#5}{r}{\normalsize\@tablecontinuation{\thetable}} \\\hline #4 \endhead
-}{\end{longtable}}
-                    
-%% Библиография по ГОСТу. Используем только бибер.
+% ================================================================
+% МНОГОСТРАНИЧНЫЕ ТАБЛИЦЫ
+% ================================================================
+%
+% Окружение nirtable — специализированная оболочка над longtable.
+% Аргументы:
+%   1 — метка;
+%   2 — подпись;
+%   3 — формат столбцов;
+%   4 — заголовок таблицы;
+%   5 — число столбцов.
+% ================================================================
 
+\newenvironment{nirtable}[5]{%
+    \begin{longtable}{#3}\caption{#2}\label{#1}
+    \\\hline #4 \\\hline \endfirsthead
+    \multicolumn{#5}{r}{\normalsize\@tablecontinuation{\thetable}} \\\hline #4 \endhead
+}{%
+    \end{longtable}%
+}
+
+% ================================================================
+% БИБЛИОГРАФИЯ
+% ================================================================
+
+% Основная конфигурация biblatex-gost.
 \RequirePackage[
     backend=biber,
     bibencoding=utf8,
@@ -239,17 +310,14 @@
     autolang=other
 ]{biblatex}
 
-%% Патчи к стилевику библиографии.
-
-% biblatex-3.4 и biblatex-gost
-% Эти штуки появились недавно, и кажется, что не во всех дистрибутивах они настроены правильно.
-% В любом случае, эта функциональность нам не нужна, ее можно заткнуть таким вот образом.
+% Заглушки под разные версии biblatex/biblatex-gost.
 \providecommand{\datecircaprint}{}
 \providecommand{\dateeraprintpre}[1]{}
 \providecommand{\mkyearzeros}{}
 \providecommand{\dateeraprint}[1]{}
 \providecommand{\dateuncertainprint}{}
 
+% Локальная подстройка библиографического оформления.
 \renewbibmacro*{//}{\nopunct\printtext{\addspace\mbox{//}\addnbspace}}
 \renewcommand*{\newblockpunct}{\textemdash\addnbspace\bibsentence}
 \DeclareFieldFormat*{pages}{\mkpageprefix[bookpagination][\mbox]{#1}}
@@ -257,82 +325,99 @@
 \DefineBibliographyStrings{english}{pages={p\adddot}}
 \DefineBibliographyExtras{russian}{\protected\def\bibrangedash{\textendash\penalty\hyphenpenalty}}
 
-% Это ставит сначала русские, потом иностранные источники
 
-\DeclareSourcemap{
-    \maps[datatype=bibtex]{
-        \map{
-            \step[fieldsource=langid, match=russian, final]
-            \step[fieldset=presort, fieldvalue={a}]
-         }
-         \map{
-            \step[fieldsource=langid, notmatch=russian, final]
-            \step[fieldset=presort, fieldvalue={z}]
-         }
-    }
+% Специальный драйвер для типа online.
+\DeclareBibliographyDriver{online}{%
+    \usebibmacro{bibindex}%
+    \usebibmacro{begentry}%
+    \usebibmacro{heading}%
+    \newunit
+    \usebibmacro{author/editor}%
+    \setunit*{\labelnamepunct}%
+    \usebibmacro{title}%
+    \addspace\foreignlanguage{russian}{[Электронный ресурс]}%
+    \setunit{\addcolondelim}%
+    \usebibmacro{translation}%
+    \def\bbx@gost@respdelim{\setunit{\respdelim}}%
+    \usebibmacro{byauthor}%
+    \setunit*{\resppunct}%
+    \iflistundef{organization}
+      {}
+      {\setrespdelim%
+       \printlist{organization}%
+       \setunit*{\resppunct}}%
+    \usebibmacro{credits}%
+    \setunit*{\resppunct}%
+    \usebibmacro{byeditor}%
+    \setunit*{\resppunct}%
+    \usebibmacro{bytranslator+others}%
+    \newunit\newblock
+    \printfield{version}%
+    \newunit\newblock
+    \printlist[semicolondelim]{specdata}%
+    \newunit\newblock
+    \usebibmacro{date}%
+    \newunit\newblock
+    \printupdate%
+    \newunit\newblock
+    \printfield{systemreq}%
+    \newunit\newblock
+    \usebibmacro{doi+eprint+url+note}%
+    \newunit\newblock
+    \usebibmacro{addendum+pubstate}%
+    \setunit{\bibpagerefpunct}\newblock
+    \usebibmacro{pageref}%
+    \newunit\newblock
+    \usebibmacro{related:init}%
+    \usebibmacro{related}%
+    \usebibmacro{finentry}%
 }
 
-% Добавляем чей-то драйвер от online, чтобы "электронный ресурс" отражался по ГОСТу.
-
-\DeclareBibliographyDriver{online}{%
-\usebibmacro{bibindex}%
-\usebibmacro{begentry}%
-\usebibmacro{heading}%
-\newunit
-\usebibmacro{author/editor}%
-\setunit*{\labelnamepunct}%
-\usebibmacro{title}%
-\addspace\foreignlanguage{russian}{[Электронный ресурс]}
-\setunit{\addcolondelim}%
-\usebibmacro{translation}%
-\def\bbx@gost@respdelim{\setunit{\respdelim}}% ----- Resp starts -----
-\usebibmacro{byauthor}%
-\setunit*{\resppunct}%
-\iflistundef{organization}
-  {}
-  {\setrespdelim%
-   \printlist{organization}%
-   \setunit*{\resppunct}}%
-\usebibmacro{credits}%
-\setunit*{\resppunct}%
-\usebibmacro{byeditor}%
-\setunit*{\resppunct}%
-\usebibmacro{bytranslator+others}%
-\newunit\newblock
-\printfield{version}%
-\newunit\newblock
-\printlist[semicolondelim]{specdata}%
-\newunit\newblock
-\usebibmacro{date}%
-\newunit\newblock
-\printupdate%
-\newunit\newblock
-\printfield{systemreq}%
-\newunit\newblock
-\usebibmacro{doi+eprint+url+note}%
-\newunit\newblock
-\usebibmacro{addendum+pubstate}%
-\setunit{\bibpagerefpunct}\newblock
-\usebibmacro{pageref}%
-\newunit\newblock
-\usebibmacro{related:init}%
-\usebibmacro{related}%
-\usebibmacro{finentry}}
-
-%% Счетчики. Для всего, кроме страниц, используем totcount, для страниц используем pageslts. Если надо.
-
-%\RequirePackage{pageslts} % В текущей версии шаблона нет объема работы. Удивительно, но да.
+% ================================================================
+% СЧЁТЧИКИ, ОБЩИЕ СЛУЖЕБНЫЕ МАКРОСЫ И БИБЛИОГРАФИЯ В ТЕКСТЕ
+% ================================================================
 
 \RequirePackage{totcount}
-\RequirePackage{longtable}
+
+% Регистрируем базовые счётчики, которые могут быть полезны в документе.
 \regtotcounter[auxfile=\jobname.tct]{figure}
 \regtotcounter[auxfile=\jobname.tct]{table}
 \regtotcounter[auxfile=\jobname.tct]{algorithm}
 \newtotcounter[auxfile=\jobname.tct]{citnum}
 \newtotcounter[auxfile=\jobname.tct]{appendix}
+
+% Поле addendum в библиографии очищается для единообразного вывода.
 \AtEveryBibitem{\clearfield{addendum}}
 
-%% Большая пачка определений теорем.
+% Заголовок основного списка литературы.
+\defbibheading{trueHeading}{%
+    \chapter*{\@referencesname}%
+    \addcontentsline{toc}{chapter}{\@referencesname}%
+}
+
+% Печать основного списка литературы.
+\newcommand{\printmainbibliography}{%
+    \printbibliography[heading=trueHeading]%
+}
+
+% Служебная команда для печати маленького списка публикаций без
+% конфликтов с гиперссылками.
+\newcommand{\@killhyperrefissue}{%
+    \renewbibmacro{pageref}{}%
+    \let\blx@anchor\relax%
+}
+
+\newcommand{\printannobibliography}{%
+    \begingroup
+    \@killhyperrefissue
+    \renewcommand*{\bibfont}{\small}%
+    \printbibliography[heading=none]%
+    \endgroup
+}
+
+% ================================================================
+% ТЕОРЕМЫ И ДОКАЗАТЕЛЬСТВА
+% ================================================================
 
 \newtheoremstyle{theoremstyle}{0pt}{0pt}{}{1cm}{\itshape}{.}{.5em}{}
 \theoremstyle{theoremstyle}
@@ -349,17 +434,20 @@
 \newtheorem{condition}[theorem]{\@theorem@condition}
 \newtheorem{example}[theorem]{\@theorem@example}
 
-\renewcommand{\proof}[1][]{\textit{\@proofname\ifthenelse{\equal{#1}{}}{}{ (#1)}}.~}
+\renewcommand{\proof}[1][]{%
+    \textit{\@proofname\ifthenelse{\equal{#1}{}}{}{ (#1)}}.~%
+}
 
-%% Листинги, по умолчанию — Python
+% ================================================================
+% ЛИСТИНГИ ПРОГРАММНОГО КОДА
+% ================================================================
 
 \RequirePackage{listings}
-\definecolor{darkblue}{rgb}{0,0,0.5}
-\definecolor{darkgreen}{rgb}{0,0.5,0}
 
+% Настройка listings по умолчанию под Python.
 \lstset{
     language=Python,
-    extendedchars=\true,
+    extendedchars=true,
     inputencoding=utf8,
     tabsize=4,
     keywordstyle=\color{darkblue},
@@ -372,9 +460,12 @@
     columns=fullflexible
 }
 
-%% Все флоаты нумеруем глобально. Формулы - тоже.
+% ================================================================
+% ГЛОБАЛЬНАЯ НУМЕРАЦИЯ ФЛОАТОВ И ФОРМУЛ
+% ================================================================
 
 \RequirePackage{chngcntr}
+
 \counterwithout{figure}{chapter}
 \counterwithout{table}{chapter}
 \counterwithout{algorithm}{chapter}
@@ -383,16 +474,19 @@
 \counterwithout{equation}{chapter}
 
 \AtBeginDocument{%
-  \let\c@lstlisting\c@algorithm
-  \let\thelstlisting\thealgorithm
-  \let\ftype@lstlisting\ftype@algorithm % give the floats the same precedence
-  \counterwithout{lstlisting}{chapter}
-  \counterwithout{lstlisting}{section}
-  \counterwithout{lstlisting}{subsection}
+    % Листинги привязываются к счётчику algorithm,
+    % чтобы использовать тот же формат нумерации.
+    \let\c@lstlisting\c@algorithm
+    \let\thelstlisting\thealgorithm
+    \let\ftype@lstlisting\ftype@algorithm
+    \counterwithout{lstlisting}{chapter}
+    \counterwithout{lstlisting}{section}
+    \counterwithout{lstlisting}{subsection}
 }
-     
 
-%% "Тонкая" настройка теховских штрафов при формировании абзацев.
+% ================================================================
+% ТОНКАЯ ПОДСТРОЙКА ПЕРЕНОСОВ И ФОРМУЛ
+% ================================================================
 
 \sloppy
 \binoppenalty=10000
@@ -400,7 +494,18 @@
 \clubpenalty=10000
 \widowpenalty=10000
 
-%% Подписи к рисункам, таблицам, листингам.
+% Русские варианты неравенств.
+\let\le\leqslant
+\let\leq\leqslant
+\let\ge\geqslant
+\let\geq\geqslant
+
+% Разрешаем многострочным формулам переходить на следующую страницу.
+\allowdisplaybreaks
+
+% ================================================================
+% ПОДПИСИ К РИСУНКАМ, ТАБЛИЦАМ И ЛИСТИНГАМ
+% ================================================================
 
 \floatstyle{plaintop}
 \restylefloat{algorithm}
@@ -413,6 +518,7 @@
     justification=centering,
     position=bottom
 }
+
 \floatsetup[table]{style=plain, capposition=top}
 \captionsetup[table]{
     labelsep=endash,
@@ -421,6 +527,7 @@
     justification=justified,
     position=top
 }
+
 \floatsetup[algorithm]{style=plain, capposition=top}
 \captionsetup[algorithm]{
     labelsep=endash,
@@ -429,6 +536,7 @@
     justification=justified,
     position=top
 }
+
 \floatsetup[lstlisting]{style=plain, capposition=top}
 \captionsetup[lstlisting]{
     labelsep=endash,
@@ -438,214 +546,195 @@
     position=top
 }
 
-%% Переопределение библиографии. Может, можно и проще, но сделал так.
-
-\defbibheading{trueHeading}{%
-\chapter*{\@referencesname}%
-\addcontentsline{toc}{chapter}{\@referencesname}}
-
-\newcommand{\printmainbibliography}{
-\printbibliography[heading=trueHeading]%
-%%% Считаем, какие границы у пяти- и десятилетней давности
-\newcounter{@yearminusfive@src}%
-\newcounter{@yearminusten@src}%
-\setcounter{@yearminusfive@src}{\theyear}%
-\addtocounter{@yearminusfive@src}{-5}%
-\def\@yearminusfive{\value{@yearminusfive@src}}%
-\setcounter{@yearminusten@src}{\theyear}%
-\addtocounter{@yearminusten@src}{-10}%
-\def\@yearminusten{\value{@yearminusten@src}}%
-%%% Компоненты фильтров
-\newcommand{\@iffiveyears}{\iffieldint{year}{\ifnumless{\thefield{year}}{\@yearminusfive}{\skipentry}{}}{\skipentry}}%
-\newcommand{\@iftenyears}{\iffieldint{year}{\ifnumless{\thefield{year}}{\@yearminusfive}{\ifnumless{\thefield{year}}{\@yearminusten}{\skipentry}{}}{\skipentry}}{\skipentry}}%
-\newcommand{\@ifveryold}{\iffieldint{year}{\ifnumless{\thefield{year}}{\@yearminusten}{}{\skipentry}}{}}%
-\newcommand{\@ifrussian}{\iffieldundef{langid}{}{\iffieldequalstr{langid}{russian}{}{\skipentry}}}%
-\newcommand{\@ifforeign}{\iffieldundef{langid}{\skipentry}{\iffieldequalstr{langid}{russian}{\skipentry}{}}}%
-%%% Сами фильтры
-\defbibcheck{bibch@russiansourcesfiveyears}{\@iffiveyears\@ifrussian}%
-\defbibcheck{bibch@russiansourcestenyears}{\@iftenyears\@ifrussian}%
-\defbibcheck{bibch@russiansourcesveryold}{\@ifveryold\@ifrussian}%
-\defbibcheck{bibch@foreignsourcesfiveyears}{\@iffiveyears\@ifforeign}%
-\defbibcheck{bibch@foreignsourcestenyears}{\@iftenyears\@ifforeign}%
-\defbibcheck{bibch@foreignsourcesveryold}{\@ifveryold\@ifforeign}%
-\@countsourceswhere{}{citnum}%
-\@countsourceswhere{check=bibch@russiansourcesfiveyears}{c@russiansourcesfiveyears}%
-\@countsourceswhere{check=bibch@russiansourcestenyears}{c@russiansourcestenyears}%
-\@countsourceswhere{check=bibch@russiansourcesveryold}{c@russiansourcesveryold}%
-\@countsourceswhere{check=bibch@foreignsourcesfiveyears}{c@foreignsourcesfiveyears}%
-\@countsourceswhere{check=bibch@foreignsourcestenyears}{c@foreignsourcestenyears}%
-\@countsourceswhere{check=bibch@foreignsourcesveryold}{c@foreignsourcesveryold}%
-\@countsourceswhere{type=online}{c@internetsources}}
-
-\newcommand{\@killhyperrefissue}{\renewbibmacro{pageref}{}\let\blx@anchor\relax}
-
-\newcommand{\printannobibliography}{\begingroup\@killhyperrefissue\renewcommand*{\bibfont}{\small}\printbibliography[heading=none]\endgroup}
-
-%% Подсчет источников различных категорий. Это следующие команды:
-%%   \relatedworksourcecount   - число источников, использованных в обзоре
-%%   \russiansourcesfiveyears  - число отечественных источников за последние 5 лет
-%%   \russiansourcestenyears   - число отечественных источников от 5 (не включительно) до 10 лет
-%%   \russiansourcesveryold    - число отечественных источников старше 10 лет
-%%   \foreignsourcesfiveyears  - число иностранных источников за последние 5 лет
-%%   \foreignsourcestenyears   - число иностранных источников от 5 (не включительно) до 10 лет
-%%   \foreignsourcesveryold    - число иностранных источников старше 10 лет
-%%   \internetsources          - число интернет-источников
-
-%%% Сначала учимся считать источники вместо того, чтобы их печатать
-\newcounter{@bibliocounter}
-\defbibenvironment{@fillbibliocounter}
-    {\renewcommand{\blx@driver}[1]{}}
-    {}
-    {\stepcounter{@bibliocounter}}
-
-%%% Заводим счетчики под это все
-\newtotcounter[auxfile=\jobname.tct]{c@relatedworksourcecount}
-\newtotcounter[auxfile=\jobname.tct]{c@russiansourcesfiveyears}
-\newtotcounter[auxfile=\jobname.tct]{c@russiansourcestenyears}
-\newtotcounter[auxfile=\jobname.tct]{c@russiansourcesveryold}
-\newtotcounter[auxfile=\jobname.tct]{c@foreignsourcesfiveyears}
-\newtotcounter[auxfile=\jobname.tct]{c@foreignsourcestenyears}
-\newtotcounter[auxfile=\jobname.tct]{c@foreignsourcesveryold}
-\newtotcounter[auxfile=\jobname.tct]{c@internetsources}
-
-\defbibheading{reallynone}{}
-
-%%% Считаем в счетчик #2 число ссылок, удовлетворяющих фильтру #1
-\newcommand{\@countsourceswhere}[2]{%
-\setcounter{@bibliocounter}{0}%
-\begingroup\@killhyperrefissue\printbibliography[env=@fillbibliocounter,heading=reallynone,#1]\endgroup%
-\setcounter{#2}{\arabic{@bibliocounter}}}
-
-
-%% Делаем русские варианты знаков неравенств.
-
-\let\le\leqslant
-\let\leq\leqslant
-\let\ge\geqslant
-\let\geq\geqslant
-
-%% Позволяем многострочным формулам перелезать на следующие страницы.
-
-\allowdisplaybreaks
-
-%% Шрифты, размеры, расположения заголовков разделов.
+% ================================================================
+% ЗАГОЛОВКИ И ОГЛАВЛЕНИЕ
+% ================================================================
 
 \RequirePackage{titlesec}
 \RequirePackage{titletoc}
 
+% Нумерация до subsubsection включительно
 \setcounter{secnumdepth}{3}
-\titleformat{\chapter}[block]{\normalsize\bfseries\center}{\@chaptername~\thechapter.~}%
-{0pt}{\begin{MakeUppercase}}[\end{MakeUppercase}\thispagestyle{\TheOnlyTruePageStyle}]
-\titlespacing{\chapter}{0pt}{-30pt}{0pt}
-\titleformat{\section}[block]{\normalsize\bfseries\center}{\thesection.~}{0pt}{}
-\titlespacing{\section}{0pt}{0pt}{0pt}
-\titleformat{\subsection}[block]{\normalsize\bfseries\center}{\thesubsection.~}{0pt}{}
-\titlespacing{\subsection}{0pt}{0pt}{0pt}
-\titleformat{\subsubsection}[block]{\normalsize\bfseries\center}{\thesubsubsection.~}{0pt}{}
-\titlespacing{\subsubsection}{0pt}{0pt}{0pt}
 
-%% \appendix начинает приложения, которые должны правильно именоваться.
+% Формат ненумеруемых структурных элементов:
+% ВВЕДЕНИЕ, ЗАКЛЮЧЕНИЕ, СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ и т.п.
+\titleformat{name=\chapter,numberless}[block]
+    {\normalsize\bfseries\centering}
+    {}
+    {0pt}
+    {\MakeUppercase}
+    [\thispagestyle{\TheOnlyTruePageStyle}]
+\titlespacing*{name=\chapter,numberless}{0pt}{0pt}{12pt}
+
+% Глава: с новой страницы, без точки после номера, без центрирования
+\titleformat{\chapter}[block]
+    {\normalsize\bfseries}
+    {\thechapter}
+    {1em}
+    {\MakeUppercase}
+    [\thispagestyle{\TheOnlyTruePageStyle}]
+\titlespacing{\chapter}{\parindent}{0pt}{12pt}
+
+% Раздел: с абзацного отступа, без точки после номера
+\titleformat{\section}[block]
+    {\normalsize\bfseries}
+    {\thesection}
+    {1em}
+    {}
+\titlespacing{\section}{\parindent}{12pt}{6pt}
+
+% Подраздел: с абзацного отступа, без точки после номера
+\titleformat{\subsection}[block]
+    {\normalsize\bfseries}
+    {\thesubsection}
+    {1em}
+    {}
+\titlespacing{\subsection}{\parindent}{12pt}{6pt}
+
+% Подпункт: с абзацного отступа, без точки после номера
+\titleformat{\subsubsection}[block]
+    {\normalsize\bfseries}
+    {\thesubsubsection}
+    {1em}
+    {}
+\titlespacing{\subsubsection}{\parindent}{12pt}{6pt}
+
+% ================================================================
+% ПРИЛОЖЕНИЯ
+% ================================================================
 
 \let\oldappendix\appendix
-\renewcommand{\appendix}{
-\oldappendix
-%% Нумерация в приложениях идет по приложениям
-\counterwithin{figure}{chapter}
-\counterwithin{table}{chapter}
-\counterwithin{algorithm}{chapter}
-\counterwithin{lstlisting}{chapter}
+\renewcommand{\appendix}{%
+    \oldappendix
+    % В приложениях нумерация рисунков, таблиц, алгоритмов и листингов
+    % ведётся по приложениям.
+    \counterwithin{figure}{chapter}
+    \counterwithin{table}{chapter}
+    \counterwithin{algorithm}{chapter}
+    \counterwithin{lstlisting}{chapter}
 
-\renewcommand{\thechapter}{\@appendixcounter}
-\titleformat{\chapter}[block]{\normalsize\bfseries\center\stepcounter{appendix}}%
-    {\@appendixname~\thechapter.~}{0pt}{\begin{MakeUppercase}}[\end{MakeUppercase}\thispagestyle{\TheOnlyTruePageStyle}]
-\titlecontents{chapter}
-    [\appendixPrefix]
-    {}
-    {\contentslabel[\@appendixname~\thecontentslabel.]{\the\appendixPrefix}}
-    {\hspace*{-\the\appendixPrefix}}
-    {\titlerule*[0.5pc]{.}\contentspage}
+    \renewcommand{\thechapter}{\@appendixcounter}
+    \titleformat{\chapter}[block]{\normalsize\bfseries\centering\stepcounter{appendix}}
+        {\@appendixname~\thechapter}
+        {0pt}
+        {\begin{MakeUppercase}}
+        [\end{MakeUppercase}\thispagestyle{\TheOnlyTruePageStyle}]
+
+    \titlecontents{chapter}
+        [\appendixPrefix]
+        {}
+        {\contentslabel[\@appendixname~\thecontentslabel]{\the\appendixPrefix}}
+        {\hspace*{-\the\appendixPrefix}}
+        {\titlerule*[0.5pc]{.}\contentspage}
 }
 
-%% Приемлемый внешний вид содержания
+% ================================================================
+% ОГЛАВЛЕНИЕ: ВНЕШНИЙ ВИД
+% ================================================================
 
+%% Отступ между номером страницы и текстом оглавления.
 \contentsmargin{1.8em}
+
+%% Ширины блоков под номера структурных элементов в оглавлении.
+%% Эти значения используются для выравнивания заголовков глав,
+%% разделов и подразделов.
 \newcommand{\chapterW}{1.2em}
 \newcommand{\sectionW}{2.2em}
 \newcommand{\subsectionW}{2.6em}
 
-\newcommand{\banhyphens}{\hyphenpenalty=10000\exhyphenpenalty=10000{}}
-
-\AtBeginDocument{
-    %% Длина "приложения" нормально определяется только теперь
-    \newlength{\appendixPrefix}
-    \settowidth{\appendixPrefix}{\@appendixname~M.~}
+%% Вспомогательная команда для запрета переносов слов.
+%% Используется, например, при выводе оглавления.
+\newcommand{\banhyphens}{%
+    \hyphenpenalty=10000%
+    \exhyphenpenalty=10000%
 }
 
+%% Ширина префикса для приложений вычисляется только после начала документа,
+%% поскольку к этому моменту уже определены все локализованные подписи.
+\AtBeginDocument{%
+    \newlength{\appendixPrefix}%
+    \settowidth{\appendixPrefix}{\@appendixname~M}%
+}
+
+%% Накопленные отступы для уровней оглавления.
 \newlength{\chapterPrefix}
-\addtolength{\chapterPrefix}{\chapterW}
+\setlength{\chapterPrefix}{\chapterW}
 
 \newlength{\sectionPrefix}
-\addtolength{\sectionPrefix}{\chapterPrefix}
+\setlength{\sectionPrefix}{\chapterPrefix}
 \addtolength{\sectionPrefix}{\sectionW}
 
 \newlength{\subsectionPrefix}
-\addtolength{\subsectionPrefix}{\sectionPrefix}
+\setlength{\subsectionPrefix}{\sectionPrefix}
 \addtolength{\subsectionPrefix}{\subsectionW}
 
+%% -----------------------------------------------------------------
+%% Главы в оглавлении
+%% -----------------------------------------------------------------
+%% Для нумерованных глав выводится только номер без точки в конце.
 \titlecontents{chapter}
     [\chapterPrefix]
     {}
-    {\contentslabel[\thecontentslabel.]{\chapterW}}
+    {\contentslabel[\thecontentslabel]{\chapterW}}
     {\hspace*{-\chapterW}}
     {\titlerule*[0.5pc]{.}\contentspage}
+
+%% -----------------------------------------------------------------
+%% Разделы в оглавлении
+%% -----------------------------------------------------------------
+%% Номер раздела также выводится без точки в конце.
 \titlecontents{section}
     [\sectionPrefix]
     {}
-    {\contentslabel[\thecontentslabel.]{\sectionW}}
+    {\contentslabel[\thecontentslabel]{\sectionW}}
     {\hspace*{-\sectionW}}
     {\titlerule*[0.5pc]{.}\contentspage}
+
+%% -----------------------------------------------------------------
+%% Подразделы в оглавлении
+%% -----------------------------------------------------------------
+%% Номер подраздела выводится без точки в конце.
 \titlecontents{subsection}
     [\subsectionPrefix]
     {}
-    {\contentslabel[\thecontentslabel.]{\subsectionW}~}
+    {\contentslabel[\thecontentslabel]{\subsectionW}\hspace{0.5em}}
     {\hspace*{-\subsectionW}}
     {\titlerule*[0.5pc]{.}\contentspage}
 
-%% Выводы по главе - удобная команда
+% ================================================================
+% ВСПОМОГАТЕЛЬНЫЕ КОМАНДЫ ДЛЯ ВВЕДЕНИЯ, ЗАКЛЮЧЕНИЯ И ВЫВОДОВ
+% ================================================================
 
-\newcommand{\chapterconclusion}{\section*{\@chapterconclusion~\thechapter}\addcontentsline{toc}{section}{\@chapterconclusion~\thechapter}}
-
-%% ...отдельным пунктом - введение и заключение
+\newcommand{\chapterconclusion}{%
+    \section*{\@chapterconclusion~\thechapter}%
+    \addcontentsline{toc}{section}{\@chapterconclusion~\thechapter}%
+}
 
 \newcommand{\startprefacepage}{%
-\chapter*{\@introductionname}\label{chapter:introduction}%
-\addcontentsline{toc}{chapter}{\@introductionname}}
+    \chapter*{\@introductionname}\label{chapter:introduction}%
+    \addcontentsline{toc}{chapter}{\@introductionname}%
+}
+
 \newcommand{\startconclusionpage}{%
-\chapter*{\@conclusionname}\label{chapter:conclusion}%
-\addcontentsline{toc}{chapter}{\@conclusionname}}
+    \chapter*{\@conclusionname}\label{chapter:conclusion}%
+    \addcontentsline{toc}{chapter}{\@conclusionname}%
+}
 
-%% Титульная страница
+% ================================================================
+% АВТОМАТИЧЕСКАЯ ИНИЦИАЛИЗАЦИЯ ДОКУМЕНТА
+% ================================================================
+%
+% Титульный лист и служебные страницы формируются внешней системой,
+% поэтому внутри LaTeX выполняется только техническая инициализация:
+% - включается арабская нумерация страниц;
+% - номер страницы ставится снизу по центру;
+% - основная часть начинается с 6-й страницы;
+% - в оглавлении отключаются переносы слов.
+% ================================================================
 
-\newcommand{\hfilll}{\hspace{0pt plus 1filll}}
-
-\RequirePackage[normalem]{ulem}
-
-\newcommand{\uhspace}[1]{\uline{\hspace{#1}}}
-\newcommand{\signatureplace}{\uhspace{7em}}
-\newcommand{\datequoteplace}{\@iflfe{``\uhspace{5ex}''}{<<\uhspace{5ex}>>}}
-\newcommand{\infiniteuhspace}{\uhspace{0 cm plus 1fill}}
-\newcommand{\unknowndate}{\datequoteplace~\uhspace{13ex}~20\uhspace{3ex}\@iflfe{~}{~г.}}
-
-
-%%% \publishyear
-
-\newcommand{\publishyear}[1]{\newcommand{\theyear}{#1}}
-
-\renewcommand{\maketitle}[1]{
+\AtBeginDocument{%
     \pagenumbering{arabic}
 
-    %% Ставим номер страницы снизу по центру
-    \newcommand{\TheOnlyTruePageStyle}{fancy}
     \pagestyle{\TheOnlyTruePageStyle}
     \renewcommand{\headrulewidth}{0pt}
     \renewcommand{\footrulewidth}{0pt}
@@ -655,11 +744,12 @@
     \lfoot{}
     \cfoot{\thepage}
     \rfoot{}
+
     \addtolength{\voffset}{3mm}
     \addtolength{\headsep}{-3mm}
-    % Начиаем с 6 страницы
+
     \setcounter{page}{6}
-    % Выключаем переносы в оглавлении
+
     \pretocmd{\tableofcontents}{\begingroup\banhyphens}{}{}
     \apptocmd{\tableofcontents}{\endgroup}{}{}
 }
