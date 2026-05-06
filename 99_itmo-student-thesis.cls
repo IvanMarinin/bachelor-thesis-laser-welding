@@ -360,13 +360,16 @@
 \lstset{
     language=Python,
     extendedchars=\true,
+    inputencoding=utf8,
     tabsize=4,
     keywordstyle=\color{darkblue},
     commentstyle=\color{gray},
     stringstyle=\color{darkgreen},
     breaklines=true,
     showstringspaces=false,
-    basicstyle=\small
+    basicstyle=\small,
+    keepspaces=true,
+    columns=fullflexible
 }
 
 %% Все флоаты нумеруем глобально. Формулы - тоже.
