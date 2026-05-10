@@ -45,7 +45,7 @@
     \defaultfontfeatures{Ligatures={TeX},Renderer=Basic}
     \setmainfont[Ligatures={TeX,Historic}]{Times New Roman}
     \setsansfont{Arial}
-    \setmonofont{Courier New}
+    \setmonofont[Scale=MatchLowercase]{JetBrains Mono}
 \else
     \RequirePackage{paratype}
 \fi
@@ -488,6 +488,14 @@
 % ТОНКАЯ ПОДСТРОЙКА ПЕРЕНОСОВ И ФОРМУЛ
 % ================================================================
 
+%% Вспомогательная команда для запрета переносов слов.
+%% Используется, например, при выводе оглавления
+%% или в названии глав, разделов и тд.
+\newcommand{\banhyphens}{%
+    \hyphenpenalty=10000%
+    \exhyphenpenalty=10000%
+}
+
 \sloppy
 \binoppenalty=10000
 \relpenalty=10000
@@ -562,7 +570,7 @@
     {\normalsize\bfseries\centering}
     {}
     {0pt}
-    {\MakeUppercase}
+    {\banhyphens\MakeUppercase}
     [\thispagestyle{\TheOnlyTruePageStyle}]
 \titlespacing*{name=\chapter,numberless}{0pt}{0pt}{12pt}
 
@@ -571,7 +579,7 @@
     {\normalsize\bfseries}
     {\thechapter}
     {1em}
-    {\MakeUppercase}
+    {\banhyphens\MakeUppercase}
     [\thispagestyle{\TheOnlyTruePageStyle}]
 \titlespacing{\chapter}{\parindent}{0pt}{12pt}
 
@@ -580,7 +588,7 @@
     {\normalsize\bfseries}
     {\thesection}
     {1em}
-    {}
+    {\banhyphens}
 \titlespacing{\section}{\parindent}{12pt}{6pt}
 
 % Подраздел: с абзацного отступа, без точки после номера
@@ -588,7 +596,7 @@
     {\normalsize\bfseries}
     {\thesubsection}
     {1em}
-    {}
+    {\banhyphens}
 \titlespacing{\subsection}{\parindent}{12pt}{6pt}
 
 % Подпункт: с абзацного отступа, без точки после номера
@@ -596,7 +604,7 @@
     {\normalsize\bfseries}
     {\thesubsubsection}
     {1em}
-    {}
+    {\banhyphens}
 \titlespacing{\subsubsection}{\parindent}{12pt}{6pt}
 
 % ================================================================
@@ -641,13 +649,6 @@
 \newcommand{\chapterW}{1.2em}
 \newcommand{\sectionW}{2.2em}
 \newcommand{\subsectionW}{2.6em}
-
-%% Вспомогательная команда для запрета переносов слов.
-%% Используется, например, при выводе оглавления.
-\newcommand{\banhyphens}{%
-    \hyphenpenalty=10000%
-    \exhyphenpenalty=10000%
-}
 
 %% Ширина префикса для приложений вычисляется только после начала документа,
 %% поскольку к этому моменту уже определены все локализованные подписи.
