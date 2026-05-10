@@ -99,7 +99,8 @@
 
 % TikZ для схем и векторных рисунков.
 \RequirePackage{tikz}
-\usetikzlibrary{arrows}
+\usetikzlibrary{arrows,positioning}
+\RequirePackage{adjustbox}
 
 % Корректная работа десятичной запятой в формулах.
 \RequirePackage{icomma}

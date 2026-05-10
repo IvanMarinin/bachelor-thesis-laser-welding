@@ -1,0 +1,96 @@
+\chapter{}
+\label{app:spectrometric_system_code}
+
+В данном приложении приведены структурная схема и листинг кода программы, использованной для обработки спектральных данных, формирования признакового описания и последующего анализа качества сварного соединения.
+
+На рисунке~\ref{fig:spectra_algorithm_scheme} представлена общая схема программы. В листингах~\ref{lst:spectra_parser}--\ref{lst:spectra_analyze_results} приведены исходные коды основных модулей программы: парсера исходных файлов, класса спектра, модуля вычисления признаков и модуля анализа результатов.
+
+\begin{figure}[H]
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tikzpicture}[
+    node distance=0.4cm,
+    every node/.style={font=\footnotesize},
+    block/.style={
+        rectangle,
+        draw,
+        rounded corners,
+        align=center,
+        minimum height=0.60cm,
+        inner sep=2pt
+    },
+    arrow/.style={->, thick}
+]
+
+\node[block] (input) {Загрузка Raw8-файлов спектров и Excel-файла с дефектами};
+\node[block, below=of input] (defects) {Извлечение признака $h_i$ и формирование таблицы дефектов};
+\node[block, below=of defects] (raw) {Чтение Raw8-файлов канала 1712307U3: длины волн и интенсивности};
+\node[block, below=of raw] (match) {Сопоставление спектров и дефектов по \texttt{sample\_id}};
+\node[block, below=of match] (filterq) {Фильтрация шумовых спектров};
+\node[block, below=of filterq] (features) {Расчёт признаков спектра: статистики, диапазоны длин волн, FFT};
+\node[block, below=of features] (processing) {Дополнительная обработка: сглаживание, Savitzky--Golay, baseline};
+\node[block, below=of processing] (table) {Формирование таблицы признаков \texttt{features.xlsx}};
+\node[block, below=of table] (aggregate) {Агрегация признаков по образцу: среднее, СКО, минимум, максимум};
+\node[block, below=of aggregate] (sampletable) {Формирование таблицы \texttt{sample\_features.xlsx}};
+\node[block, below=of sampletable] (models) {Обучение и сравнение моделей: LogisticRegression, RandomForest, GradientBoosting, SVM, kNN};
+\node[block, below=of models] (cv) {Оценка качества через StratifiedGroupKFold с группировкой по \texttt{sample\_id}};
+\node[block, below=of cv] (sensitive) {Подбор чувствительного режима со сдвигом порога};
+\node[block, below=of sensitive] (metrics) {Расчёт метрик: accuracy, balanced accuracy, precision, recall, F1, confusion matrix};
+\node[block, below=of metrics] (save) {Сохранение таблиц, графиков, матрицы ошибок и важности признаков};
+\node[block, below=of save] (end) {Интерпретация результатов и вывод о применимости спектральных признаков};
+
+\draw[arrow] (input) -- (defects);
+\draw[arrow] (defects) -- (raw);
+\draw[arrow] (raw) -- (match);
+\draw[arrow] (match) -- (filterq);
+\draw[arrow] (filterq) -- (features);
+\draw[arrow] (features) -- (processing);
+\draw[arrow] (processing) -- (table);
+\draw[arrow] (table) -- (aggregate);
+\draw[arrow] (aggregate) -- (sampletable);
+\draw[arrow] (sampletable) -- (models);
+\draw[arrow] (models) -- (cv);
+\draw[arrow] (cv) -- (sensitive);
+\draw[arrow] (sensitive) -- (metrics);
+\draw[arrow] (metrics) -- (save);
+\draw[arrow] (save) -- (end);
+
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Общая схема алгоритма обработки спектральных данных и классификации качества сварки}
+\label{fig:spectra_algorithm_scheme}
+\end{figure}
+
+Листинг~\ref{lst:spectra_parser} содержит модуль \texttt{Parser.py}, реализующий чтение исходных файлов спектральных измерений и извлечение данных, необходимых для последующей обработки.
+
+\lstinputlisting[
+    language=Python,
+    caption={Модуль \texttt{Parser.py} для чтения и первичной обработки спектральных данных},
+    label={lst:spectra_parser}
+]{code/spectra/Parser.py}
+
+Листинг~\ref{lst:spectra_spectrum} содержит модуль \texttt{Spectrum.py}, в котором реализовано представление спектра и связанных с ним параметров образца.
+
+\lstinputlisting[
+    language=Python,
+    caption={Модуль \texttt{Spectrum.py} для представления спектральных данных},
+    label={lst:spectra_spectrum}
+]{code/spectra/Spectrum.py}
+
+Листинг~\ref{lst:spectra_make_features} содержит модуль \texttt{make\_features.py}, предназначенный для вычисления спектральных признаков и формирования таблиц признакового описания.
+
+\lstinputlisting[
+    language=Python,
+    caption={Модуль \texttt{make\_features.py} для формирования признаков спектральных сигналов},
+    label={lst:spectra_make_features}
+]{code/spectra/make_features.py}
+
+Листинг~\ref{lst:spectra_analyze_results} содержит модуль \texttt{analyze\_results.py}, в котором реализованы загрузка таблиц признаков, построение моделей классификации, оценка их качества и сохранение результатов анализа.
+
+\lstinputlisting[
+    language=Python,
+    caption={Модуль \texttt{analyze\_results.py} для анализа результатов и сравнения классификаторов},
+    label={lst:spectra_analyze_results}
+]{code/spectra/analyze_results.py}
+
+\endinput

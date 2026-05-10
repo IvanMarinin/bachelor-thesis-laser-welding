@@ -1,15 +1,84 @@
-\chapter{Листинг программы обработки сигналов коаксиальной трёхканальной фотодиодной системы}
-\label{sec:app:three-photodiodes-listing}
+\chapter{}
+\label{app:three_photodiodes_code}
 
-В данном приложении приведён исходный код программы, использованной для обработки и анализа сигналов коаксиальной трёхканальной фотодиодной системы.
+В данном приложении приведены структурная схема и листинг кода программы, использованной для обработки сигналов коаксиальной трёхканальной фотодиодной системы, формирования признакового описания и последующего анализа результатов.
 
-Листинг~\ref{lst:three-photodiodes-main} содержит основной модуль программы \texttt{main.py}, реализующий загрузку экспериментальных данных, их предварительную обработку, вычисление информативных признаков и формирование результатов анализа.
+На рисунке~\ref{fig:program_flowchart} представлена общая схема работы программы. В листингах~\ref{lst:diods_parser}--\ref{lst:diods_analyze_results} приведены исходные коды основных модулей: парсера исходных файлов измерений, класса сигнала, модуля вычисления признаков и модуля анализа результатов.
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.55cm,
+    block/.style={
+        rectangle,
+        draw,
+        rounded corners,
+        align=center,
+        minimum width=7.2cm,
+        minimum height=0.72cm,
+        inner sep=3pt
+    },
+    arrow/.style={->, thick}
+]
+
+\node[block] (start) {Исходные файлы измерений \texttt{*.txt}};
+\node[block, below=of start] (parser) {Чтение заголовка и бинарных данных};
+\node[block, below=of parser] (cut) {Выделение активного участка сигнала по reflected-каналу};
+\node[block, below=of cut] (signal) {Формирование объекта \texttt{Signal}: visible, reflected, infrared};
+\node[block, below=of signal] (params) {Присвоение параметров эксперимента: мощность и $h_i$};
+\node[block, below=of params] (windows) {Разбиение сигналов на окна};
+\node[block, below=of windows] (features) {Расчёт признаков для каждого окна};
+\node[block, below=of features] (excel) {Сохранение таблицы признаков \texttt{window\_features.xlsx}};
+\node[block, below=of excel] (analysis) {Загрузка таблицы и подготовка данных для моделей\\ \footnotesize Возможны два варианта: с признаками reflected-канала и без них};
+\node[block, below=of analysis] (models) {Классификация дефекта и регрессия $h_i$};
+\node[block, below=of models] (plots) {Сохранение таблиц результатов и графиков};
+
+\draw[arrow] (start) -- (parser);
+\draw[arrow] (parser) -- (cut);
+\draw[arrow] (cut) -- (signal);
+\draw[arrow] (signal) -- (params);
+\draw[arrow] (params) -- (windows);
+\draw[arrow] (windows) -- (features);
+\draw[arrow] (features) -- (excel);
+\draw[arrow] (excel) -- (analysis);
+\draw[arrow] (analysis) -- (models);
+\draw[arrow] (models) -- (plots);
+
+\end{tikzpicture}
+\caption{Общая схема работы программы обработки сигналов}
+\label{fig:program_flowchart}
+\end{figure}
+
+Листинг~\ref{lst:diods_parser} содержит модуль \texttt{Parser.py}, реализующий чтение исходных файлов измерений и извлечение данных, необходимых для последующей обработки.
 
 \lstinputlisting[
-    language=Python
-]{main.py}
+    language=Python,
+    caption={Модуль \texttt{Parser.py} для чтения и первичной обработки исходных файлов измерений},
+    label={lst:diods_parser}
+]{code/diods/Parser.py}
 
+Листинг~\ref{lst:diods_signal} содержит модуль \texttt{Signal.py}, в котором реализовано представление сигналов и связанных с ними параметров эксперимента.
 
+\lstinputlisting[
+    language=Python,
+    caption={Модуль \texttt{Signal.py} для представления сигналов и параметров эксперимента},
+    label={lst:diods_signal}
+]{code/diods/Signal.py}
+
+Листинг~\ref{lst:diods_make_features} содержит модуль \texttt{make\_features.py}, предназначенный для разбиения сигналов на окна и вычисления признаков.
+
+\lstinputlisting[
+    language=Python,
+    caption={Модуль \texttt{make\_features.py} для формирования признакового описания сигналов},
+    label={lst:diods_make_features}
+]{code/diods/make_features.py}
+
+Листинг~\ref{lst:diods_analyze_results} содержит модуль \texttt{analyze\_results.py}, в котором реализованы загрузка таблицы признаков, подготовка данных, построение моделей и сохранение результатов анализа.
+
+\lstinputlisting[
+    language=Python,
+    caption={Модуль \texttt{analyze\_results.py} для анализа результатов и построения моделей},
+    label={lst:diods_analyze_results}
+]{code/diods/analyze_results.py}
 
 \endinput
