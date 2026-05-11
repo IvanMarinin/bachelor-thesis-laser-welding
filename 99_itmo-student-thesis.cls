@@ -456,7 +456,7 @@
     stringstyle=\color{darkgreen},
     breaklines=true,
     showstringspaces=false,
-    basicstyle=\small,
+    basicstyle=\small\ttfamily,
     keepspaces=true,
     columns=fullflexible
 }
