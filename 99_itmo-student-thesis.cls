@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{itmo-student-thesis}[2023/04/16 v1.4.5]
+\ProvidesClass{99_itmo-student-thesis}[2026]
 
 % ================================================================
 % БАЗОВЫЙ КЛАСС И ОБРАБОТКА ОПЦИЙ
@@ -715,11 +715,15 @@
 \newcommand{\startprefacepage}{%
     \chapter*{\@introductionname}\label{chapter:introduction}%
     \addcontentsline{toc}{chapter}{\@introductionname}%
+    \setlength{\parindent}{1.25cm}%
+    \indent%
 }
 
 \newcommand{\startconclusionpage}{%
     \chapter*{\@conclusionname}\label{chapter:conclusion}%
     \addcontentsline{toc}{chapter}{\@conclusionname}%
+    \setlength{\parindent}{1.25cm}%
+    \indent%
 }
 
 % ================================================================
