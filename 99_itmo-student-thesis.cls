@@ -754,7 +754,7 @@
     \addtolength{\voffset}{3mm}
     \addtolength{\headsep}{-3mm}
 
-    \setcounter{page}{6}
+    \setcounter{page}{5}
 
     \pretocmd{\tableofcontents}{\begingroup\banhyphens}{}{}
     \apptocmd{\tableofcontents}{\endgroup}{}{}
